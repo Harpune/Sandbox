@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -17,6 +18,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -30,10 +32,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRA_REPLY_TITLE = "note_title";
+    public static final String EXTRA_REPLY_CONTENT = "note_description";
+    public static final String EXTRA_REPLY_FAVOURITE = "note_favourite";
+    private static final String TAG = "MainActivity";
+
     private NoteViewModel mNoteViewModel;
     private NoteListAdapter mNoteListAdapter;
     public static final int NEW_NOTE_ACTIVITY_REQUEST_CODE = 1;
-    private static final String TAG = "MainActivity";
 
     private DrawerLayout mDrawerLayout;
 
@@ -46,10 +52,10 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
-
-        mDrawerLayout = findViewById(R.id.drawer_layout);
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
+        }
 
         // Setup the Floating Action Button.
         final FloatingActionButton fab = findViewById(R.id.fab);
@@ -87,31 +93,47 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
 
+            /**
+             * Handle swipe gesture.
+             * @param viewHolder Holder swiped.
+             * @param direction Direction of swipe.
+             */
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 final int position = viewHolder.getAdapterPosition();
                 final Note note = mNoteListAdapter.mNotes.get(position);
-                mNoteViewModel.delete(note);
-                mNoteListAdapter.removeNote(position);
 
-                Snackbar.make(recyclerView, "Note deleted", Snackbar.LENGTH_LONG)
-                        .setAction("UNDO", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                mNoteViewModel.insert(note);
-                                mNoteListAdapter.insertNote(note, position);
-                            }
-                        }).show();
+                // Just delete if its not favourized.
+                if(note.isFavourite()){
+                    mNoteListAdapter.notifyItemChanged(position);
+                    Snackbar.make(recyclerView, "Cannot delete this Note. Its your favourite!", Snackbar.LENGTH_LONG).show();
+                } else {
+                    mNoteViewModel.delete(note);
+                    mNoteListAdapter.removeNote(position);
+
+                    Snackbar.make(recyclerView, "Note deleted", Snackbar.LENGTH_LONG)
+                            .setAction("UNDO", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    mNoteViewModel.insert(note);
+                                    mNoteListAdapter.insertNote(note, position);
+                                }
+                            }).show();
+                }
+
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
+        // Setup DrawerLayout.
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+                    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
                         menuItem.setChecked(false);
                         switch (menuItem.getItemId()){
                             case R.id.nav_setting:
@@ -146,8 +168,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == NEW_NOTE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
             Note note = new Note(
-                    data.getStringExtra(CreateNoteActivity.EXTRA_REPLY_TITLE),
-                    data.getStringExtra(CreateNoteActivity.EXTRA_REPLY_CONTENT));
+                    data.getStringExtra(EXTRA_REPLY_TITLE),
+                    data.getStringExtra(EXTRA_REPLY_CONTENT),
+                    data.getBooleanExtra(EXTRA_REPLY_FAVOURITE, false));
+            Log.d(TAG, note.toString());
             mNoteViewModel.insert(note);
         } else {
             Toast.makeText(this, "Wurde nicht gespeichert...", Toast.LENGTH_LONG).show();

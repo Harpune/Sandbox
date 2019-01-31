@@ -5,27 +5,32 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
+
+import java.util.List;
 
 @Entity(tableName = "note")
 public class Note {
 
     @PrimaryKey(autoGenerate = true)
     private long id;
-    @NonNull
     private String title;
-    private String content;
+    private String text;
+    private String checkable;
+    @ColumnInfo(name = "image_paths")
+    private String imagePaths;
     @ColumnInfo(name = "created_at")
     private long createdAt;
     @ColumnInfo(name = "updated_at")
     private long updatedAt;
-    private boolean prioritized;
+    @ColumnInfo(name = "last_viewed_at")
+    private long lastViewedAt;
+    private boolean favourite;
 
     @Ignore
-    public Note(String title, String content) {
+    public Note(String title, String text, boolean favourite) {
         this.title = title;
-        this.content = content;
-        this.prioritized = false;
+        this.text = text;
+        this.favourite = favourite;
 
         long time = System.currentTimeMillis();
 
@@ -47,16 +52,32 @@ public class Note {
         return title;
     }
 
-    public void setTitle(@NonNull String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    public String getContent() {
-        return content;
+    public String getText() {
+        return text;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String getCheckable() {
+        return checkable;
+    }
+
+    public void setCheckable(String checkable) {
+        this.checkable = checkable;
+    }
+
+    public String getImagePaths() {
+        return imagePaths;
+    }
+
+    public void setImagePaths(String imagePaths) {
+        this.imagePaths = imagePaths;
     }
 
     public long getCreatedAt() {
@@ -75,12 +96,20 @@ public class Note {
         this.updatedAt = updatedAt;
     }
 
-    public boolean isPrioritized() {
-        return prioritized;
+    public long getLastViewedAt() {
+        return lastViewedAt;
     }
 
-    public void setPrioritized(boolean prioritized) {
-        this.prioritized = prioritized;
+    public void setLastViewedAt(long lastViewedAt) {
+        this.lastViewedAt = lastViewedAt;
+    }
+
+    public boolean isFavourite() {
+        return favourite;
+    }
+
+    public void setFavourite(boolean favourite) {
+        this.favourite = favourite;
     }
 
     @Override
@@ -88,10 +117,13 @@ public class Note {
         return "Note{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
+                ", text='" + text + '\'' +
+                ", checkable='" + checkable + '\'' +
+                ", imagePaths='" + imagePaths + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                ", prioritized=" + prioritized +
+                ", lastViewedAt=" + lastViewedAt +
+                ", favourite=" + favourite +
                 '}';
     }
 }

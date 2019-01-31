@@ -18,6 +18,7 @@ public abstract class NoteRoomDatabase extends RoomDatabase {
     /**
      * Returns instance of the database.
      * Instantiate database if null.
+     *
      * @param context Context of current activity.
      * @return Database instance.
      */
@@ -28,7 +29,6 @@ public abstract class NoteRoomDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                             NoteRoomDatabase.class,
                             DATABASE_NAME)
-
                             .build();
                 }
 
@@ -37,37 +37,33 @@ public abstract class NoteRoomDatabase extends RoomDatabase {
         return INSTANCE;
     }
 
-    /**
-     * Creates callback for populating data into the note database.
-     * Add ".addCallback(sRoomDatabaseCallback)" before building database.
-     */
     private static RoomDatabase.Callback sRoomDatabaseCallback =
             new RoomDatabase.Callback() {
+
                 @Override
                 public void onOpen(@NonNull SupportSQLiteDatabase db) {
                     super.onOpen(db);
-                    new PopulateDbAsync(INSTANCE).execute();
+                    new ResetDbAsync(INSTANCE).execute();
                 }
             };
 
     /**
-     * Deletes all entries in the database and inserts dummy data.
+     * Populate the database in the background.
      */
-    private static class PopulateDbAsync  extends AsyncTask<Void, Void, Void> {
+    private static class ResetDbAsync extends AsyncTask<Void, Void, Void> {
 
         private final NoteDao mDao;
 
-        PopulateDbAsync (NoteRoomDatabase db) {
+        ResetDbAsync(NoteRoomDatabase db) {
             mDao = db.noteDao();
         }
 
         @Override
         protected Void doInBackground(final Void... params) {
+            // Start the app with a clean database every time.
+            // Not needed if you only populate the database
+            // when it is first created
             mDao.deleteAll();
-            Note note = new Note("Hallo", "welt");
-            mDao.insert(note);
-            note = new Note("Was", "geht");
-            mDao.insert(note);
             return null;
         }
     }

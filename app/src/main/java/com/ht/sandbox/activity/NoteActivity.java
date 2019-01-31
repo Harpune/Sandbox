@@ -2,31 +2,20 @@ package com.ht.sandbox.activity;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.arch.persistence.room.Delete;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.Html;
-import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -37,11 +26,10 @@ import com.ht.sandbox.note.NoteViewModel;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.List;
+import java.util.Locale;
 
 public class NoteActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final static String TAG = "NoteActivity";
     private final static String INTENT_NOTE_ID = "intent:note:id";
 
     private NoteViewModel mNoteViewModel;
@@ -74,7 +62,7 @@ public class NoteActivity extends AppCompatActivity implements View.OnClickListe
 
         switcher = findViewById(R.id.switcher);
 
-        textView = switcher.findViewById(R.id.clickable_text_view);
+        textView = switcher.findViewById(R.id.note_text);
         editText = switcher.findViewById(R.id.clickable_edit);
         // TODO make bullet enable in settings.
         editText.setOnKeyListener(new View.OnKeyListener() {
@@ -111,15 +99,24 @@ public class NoteActivity extends AppCompatActivity implements View.OnClickListe
      */
     void updateView() {
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle(mNote.getTitle());
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle(mNote.getTitle());
+        }
 
-        TextView contentView = findViewById(R.id.clickable_text_view);
-        contentView.setText(mNote.getContent());
+        textView = findViewById(R.id.note_text);
+        textView.setText(mNote.getText());
+
+        ImageView favourite = findViewById(R.id.favourite_icon);
+        if(mNote.isFavourite()){
+            favourite.setBackgroundResource(R.drawable.ic_star_black_24dp);
+        } else {
+            favourite.setBackgroundResource(R.drawable.ic_star_border_black_24dp);
+        }
 
         TextView dateView = findViewById(R.id.date);
         Date date = new Date(mNote.getCreatedAt());
-        String dateString = new SimpleDateFormat("E dd.M.yyyy").format(date);
+        String dateString = new SimpleDateFormat("E dd.M.yyyy", Locale.GERMAN).format(date);
         dateView.setText(dateString);
     }
 
@@ -140,10 +137,19 @@ public class NoteActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void saveTextView(View view) {
         String updatedContent = editText.getText().toString();
-        mNote.setContent(updatedContent);
+        mNote.setText(updatedContent);
         mNoteViewModel.update(mNote);
         textView.setText(updatedContent);
         switcher.showPrevious();
+    }
+
+    public void toggleFavourite(View view) {
+        if(mNote.isFavourite()){
+            mNote.setFavourite(false);
+        } else {
+            mNote.setFavourite(true);
+        }
+        mNoteViewModel.update(mNote);
     }
 
     private void showFABMenu() {

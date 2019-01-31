@@ -27,7 +27,7 @@
         android:layout_marginBottom="8dp"
         android:clickable="true"
         android:focusable="true"
-        android:src="@drawable/ic_keyboard_arrow_right_white_24dp"
+        android:src="@drawable/ic_check_white_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 </android.support.constraint.ConstraintLayout>

@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ht.sandbox.R;
@@ -21,7 +21,6 @@ import java.util.Locale;
 
 public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.ViewHolder> {
 
-    private final static String TAG = "NoteListAdapter";
     private final static String INTENT_NOTE_ID = "intent:note:id";
     private final LayoutInflater mInflater;
     private final Context mContext;
@@ -45,13 +44,15 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.ViewHo
             final Note current = mNotes.get(i);
 
             holder.title.setText(current.getTitle());
-            holder.content.setText(current.getContent());
+            holder.content.setText(current.getText());
 
             Date date = new Date(current.getCreatedAt());
             String dateString = new SimpleDateFormat("dd.M.yyyy", Locale.GERMAN).format(date);
             holder.createdAt.setText(dateString);
 
-            Log.d(TAG, "bind holder");
+            if(!current.isFavourite()){
+                holder.favourite.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -96,13 +97,15 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.ViewHo
      */
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView title, content, createdAt;
+        ImageView favourite;
         NoteListAdapter mAdapter;
 
         ViewHolder(@NonNull View view, NoteListAdapter adapter) {
             super(view);
             title = view.findViewById(R.id.note_title);
-            content = view.findViewById(R.id.note_content);
+            content = view.findViewById(R.id.note_text);
             createdAt = view.findViewById(R.id.note_created);
+            favourite = view.findViewById(R.id.favourite_icon);
             mAdapter = adapter;
 
             view.setOnClickListener(this);

@@ -4,14 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.Menu;
@@ -24,25 +22,31 @@ import com.ht.sandbox.R;
 import com.ht.sandbox.activity.fragment.CreateContentFragment;
 import com.ht.sandbox.activity.fragment.CreateTitleFragment;
 
-import static com.ht.sandbox.activity.CreateNoteActivity.EXTRA_REPLY_CONTENT;
-import static com.ht.sandbox.activity.CreateNoteActivity.EXTRA_REPLY_TITLE;
+import static com.ht.sandbox.activity.MainActivity.EXTRA_REPLY_CONTENT;
+import static com.ht.sandbox.activity.MainActivity.EXTRA_REPLY_FAVOURITE;
+import static com.ht.sandbox.activity.MainActivity.EXTRA_REPLY_TITLE;
+
 
 public class CreateActivity extends AppCompatActivity {
 
-    private static final String TAG = "CreateActivity";
     private static final int NUM_PAGES = 2;
     private ViewPager mViewPager;
     private ScreenSlidePagerAdapter mPagerAdapter;
     private FloatingActionButton mFab;
+
+    private boolean isFavourite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
 
+        // Setup toolbar.
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Create");
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        if(actionBar != null){
+            actionBar.setTitle(R.string.new_note);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         // Setup ViewPager.
         mViewPager = findViewById(R.id.pager);
@@ -72,6 +76,7 @@ public class CreateActivity extends AppCompatActivity {
                     } else {
                         intent.putExtra(EXTRA_REPLY_TITLE, title);
                         intent.putExtra(EXTRA_REPLY_CONTENT, content);
+                        intent.putExtra(EXTRA_REPLY_FAVOURITE, isFavourite);
                         setResult(RESULT_OK, intent);
                     }
 
@@ -88,7 +93,7 @@ public class CreateActivity extends AppCompatActivity {
                         mFab.setImageDrawable(ContextCompat.getDrawable(CreateActivity.this, R.drawable.ic_keyboard_arrow_right_white_24dp));
                         break;
                     case 1:
-                        mFab.setImageDrawable(ContextCompat.getDrawable(CreateActivity.this, R.drawable.ic_add_white_24dp));
+                        mFab.setImageDrawable(ContextCompat.getDrawable(CreateActivity.this, R.drawable.ic_check_white_24dp));
                         break;
                 }
             }
@@ -111,7 +116,15 @@ public class CreateActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_favourite:
-                item.setEnabled(true);
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    isFavourite = false;
+                    item.setIcon(R.drawable.ic_star_border_white_24dp);
+                } else {
+                    item.setChecked(true);
+                    isFavourite = true;
+                    item.setIcon(R.drawable.ic_star_white_24dp);
+                }
                 Toast.makeText(getApplicationContext(), R.string.action_favourite, Toast.LENGTH_LONG).show();
                 return true;
         }
@@ -140,6 +153,7 @@ public class CreateActivity extends AppCompatActivity {
             return null;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
             Fragment fragment = (Fragment) super.instantiateItem(container, position);
@@ -153,7 +167,7 @@ public class CreateActivity extends AppCompatActivity {
             super.destroyItem(container, position, object);
         }
 
-        public Fragment getRegisteredFragment(int position) {
+        Fragment getRegisteredFragment(int position) {
             return registeredFragments.get(position);
         }
 
